@@ -965,6 +965,28 @@ class Style
                 }
                 return $this->_font_family = $font;
             }
+
+            // try font in different widths first and then only other fonts
+            $weights = [100,200,300,400,500,600,700,800,900];
+            usort($weights, function($a, $b) use ($weight) {
+                // if weight is even add one to allow a predictable order with bigger weights first
+                $weightCompare = $weight%2 === 0 ? $weight+1 : $weight;
+                return strnatcmp(abs($a-$weightCompare), abs($b-$weightCompare));
+            });
+            foreach ($weights as $w) {
+                if ($w === $weight) {
+                    // skip already tried
+                    continue;
+                }
+
+                $font = $this->getFontMetrics()->getFont($family, $this->getFontMetrics()->getType($w.' '.$font_style));
+                if ($font) {
+                    if ($DEBUGCSS) {
+                        print '(' . $font . ")get_font_family]\n</pre>";
+                    }
+                    return $this->_font_family = $font;
+                }
+            }
         }
 
         $family = null;
